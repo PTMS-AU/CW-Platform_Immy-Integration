@@ -1,119 +1,24 @@
 ---
 layout: default
-title: ConnectWise Platform ImmyBot Integration Guide
+title: Archived — ConnectWise Platform ImmyBot Integration
 ---
 
-<h1>ConnectWise Platform — ImmyBot Integration</h1>
+<h1>Archived / Deprecated</h1>
 
 <p>
-  An ImmyBot Dynamic Integration and software package that lets ImmyBot deploy
-  and manage the ConnectWise Platform agent on Windows
-  endpoints. Built and tested against the <strong>AU</strong> region.
+  This custom ConnectWise Platform integration for ImmyBot is no longer
+  maintained or recommended for new deployments.
 </p>
 
-<hr>
-
-<h2>📄 Full Integration Guide</h2>
-<ul>
-  <li>
-    <a href="docs/index.html">
-      ConnectWise Platform Integration Guide
+<p>
+  <strong>
+    <a href="https://www.immy.bot/documentation/rmm-integrations/connectwise-rmm/">
+      Use Immy's native ConnectWise RMM integration instead
     </a>
-    — step-by-step setup, configuration, and troubleshooting
-  </li>
-</ul>
+  </strong>
+</p>
 
-<hr>
-
-<h2>🔗 Integration Script</h2>
-<p>Paste this into <strong>Integrations → New Dynamic Integration</strong> in ImmyBot.</p>
-<table>
-  <thead>
-    <tr><th>Script</th><th>Paste Into</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><a href="integration/ConnectWiseRMM-Integration.ps1">ConnectWiseRMM-Integration.ps1</a></td>
-      <td>Integrations → New Dynamic Integration</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr>
-
-<h2>📦 Software Package Scripts</h2>
-<p>Paste each script into the corresponding slot when creating the Software entry in ImmyBot.</p>
-<table>
-  <thead>
-    <tr><th>Script</th><th>Paste Into</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><a href="software/Detect-CWPlatform.ps1">Detect-CWPlatform.ps1</a></td>
-      <td>Software → Custom Detection Script</td>
-    </tr>
-    <tr>
-      <td><a href="software/Get-CWPlatformAgentDownloadLink.ps1">Get-CWPlatformAgentDownloadLink.ps1</a></td>
-      <td>Software → Dynamic Versions</td>
-    </tr>
-    <tr>
-      <td><a href="software/Install-CWPlatform.ps1">Install-CWPlatform.ps1</a></td>
-      <td>Software → Install Script</td>
-    </tr>
-    <tr>
-      <td><a href="software/Test-CWPlatform.ps1">Test-CWPlatform.ps1</a></td>
-      <td>Software → Test Script</td>
-    </tr>
-    <tr>
-      <td><a href="software/Uninstall-CWPlatform.ps1">Uninstall-CWPlatform.ps1</a></td>
-      <td>Software → Uninstall Script</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr>
-
-<h2>🚀 Quick Start</h2>
-<ol>
-  <li>
-    <strong>Generate a Platform API key</strong> in ConnectWise Platform:
-    Integrations → API Access → Generate API Access.
-    Grant all available scopes. Copy the secret immediately — it is only shown once.
-  </li>
-  <li>
-    <strong>Host the barebone MSI</strong>:
-    Download the ConnectWise Platform barebone MSI from
-    <code>https://setup.auplatform.connectwise.com/windows/BareboneAgent/32/ITSagent/MSI/setup</code>,
-    upload it to your own storage (Azure Blob, S3, etc.), and update the <code>$URL</code> in
-    <a href="software/Get-CWPlatformAgentDownloadLink.ps1">Get-CWPlatformAgentDownloadLink.ps1</a>
-    with your direct-download URL.
-  </li>
-  <li>
-    <strong>Add the integration in ImmyBot</strong>:
-    Integrations → New Dynamic Integration. Paste
-    <a href="integration/ConnectWiseRMM-Integration.ps1">ConnectWiseRMM-Integration.ps1</a>.
-    Configure with the API endpoint URL, Client ID, and Client Secret. Initialise — it should go Healthy.
-  </li>
-  <li>
-    <strong>Map tenants to companies</strong>:
-    Integration → Clients tab. Each ImmyBot tenant needs to be mapped to a ConnectWise Platform company.
-  </li>
-  <li>
-    <strong>Create the software entry</strong>:
-    Paste each <code>software/*.ps1</code> script into its slot per the table above.
-    Under Advanced, set Agent Integration to the integration you created in step 3.
-    Set Uninstall's Detection String to <code>SaazOnDemand|ITSPlatform</code>.
-  </li>
-  <li>
-    <strong>Deploy</strong> to a test machine. Confirm it installs, registers, and shows up as an agent.
-  </li>
-</ol>
-
-<hr>
-
-<h2>📚 Other Resources</h2>
-<ul>
-  <li><a href="README.md">README</a> — project overview and repo layout</li>
-  <li><a href="CONTRIBUTING.md">Contributing Guide</a> — workflow for updating scripts</li>
-  <li><a href="LICENSE">License</a></li>
-</ul>
+<p>
+  This repository remains available as a legacy reference only. Its scripts
+  and documentation describe the previous custom implementation.
+</p>
