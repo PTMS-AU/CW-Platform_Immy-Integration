@@ -1,130 +1,22 @@
 # ConnectWise Platform — ImmyBot Integration
 
-An ImmyBot Dynamic Integration and software package that lets ImmyBot deploy and
-manage the ConnectWise Platform agent on Windows endpoints.
+> **Archived:** This repository is retained for historical reference only and is no longer the recommended approach.
+>
+> Use the **native ImmyBot ConnectWise RMM integration** instead:
+> <https://www.immy.bot/documentation/rmm-integrations/connectwise-rmm/>
 
-Built and tested against the **AU** region
-(`openapi.service.auplatform.connectwise.com`). Works regionally — only the API
-endpoint URL changes for EU/US.
+This repository contains the previous custom integration and software package for deploying and managing the ConnectWise Platform agent through ImmyBot.
 
-## What this gives you
+## Status
 
-- **List ConnectWise Platform companies as ImmyBot clients** and map them to tenants.
-- **List ConnectWise Platform endpoints as agents** with live online status (via the
-  heartbeat endpoint).
-- **Inventory identification** — match an ImmyBot computer to its ConnectWise Platform endpoint
-  automatically by reading `privateendpointid` from the registry.
-- **Deploy the ConnectWise Platform agent** to managed machines, with per-tenant install tokens
-  fetched at install time and passed to the MSI as `TOKEN=<guid>`.
-- **Run scripts on ConnectWise Platform endpoints** (ephemeral, via schedule-tasks).
+- This repo is **archived / deprecated**.
+- New deployments should use the **native Immy integration**.
+- Existing contents are kept only to document the legacy implementation.
 
-## Branches
+## Migration guidance
 
-| Branch | What it is |
-| --- | --- |
-| `alpha` | Mirrors the live ImmyBot instance. Known-good; this is what you roll back to. |
-| `beta` | v2.0.0-beta — hardening plus new capability, all flag-gated and defaulting to alpha's behaviour. Under test. |
+If you are looking to set up ConnectWise RMM with ImmyBot, follow the native integration documentation linked above rather than using the scripts in this repository.
 
-Paste the beta script into a **second** Dynamic Integration so alpha keeps
-running while it is being validated. Test plan and open API questions:
-[`docs/BETA-NOTES.md`](docs/BETA-NOTES.md).
+## Legacy contents
 
-## Repo layout
-
-```
-integration/   The Dynamic Integration script + the CWPlatformAPI module it requires
-software/      The five software-package scripts (paste into the Software entry)
-docs/          The full integration guide (open in a browser, or upload to Rewst)
-tests/         Dependency-free tests — pwsh -File tests/Test-CwHelpers.ps1
-```
-
-| Folder | File | Paste into |
-| --- | --- | --- |
-| `integration/` | `CWPlatformAPI.psm1` | Modules → New Module, named `CWPlatformAPI` (**do this first**) |
-| `integration/` | `ConnectWiseRMM-Integration.ps1` | Integrations → New Dynamic Integration |
-| `software/` | `Detect-CWPlatform.ps1` | Software → Custom Detection Script |
-| `software/` | `Get-CWPlatformAgentDownloadLink.ps1` | Software → Dynamic Versions |
-| `software/` | `Install-CWPlatform.ps1` | Software → Install Script |
-| `software/` | `Uninstall-CWPlatform.ps1` | Software → Uninstall Script |
-| `software/` | `Test-CWPlatform.ps1` | Software → Test Script |
-
-### Execution Context — check this after pasting
-
-`Install-CWPlatform.ps1` and `Uninstall-CWPlatform.ps1` **must be set to
-MetaScript**. They call `Invoke-ImmyCommand`, `Get-IntegrationAgentInstallToken`,
-`Detect-Software` and `Remove-SoftwareRegKey`, none of which exist in the
-System/User contexts — those execute *on the endpoint*, where ImmyBot's
-server-side cmdlets are undefined.
-
-The failure is worth recognising because it does not look like a context
-problem. Every cmdlet raises "The term 'X' is not recognized", the software
-search matches nothing as a result, and ImmyBot reports it as
-`Failed to uninstall ... Detected: <version>` — which reads as a broken
-detection string. Both scripts now check their dependencies on entry and throw
-naming the setting to change.
-
-Creating a script with **New** or **Copy as New** does not necessarily carry
-over the context you need, so verify it after pasting rather than assuming.
-
-`Detect-CWPlatform.ps1` and `Test-CWPlatform.ps1` run on the endpoint and use no
-MetaScript cmdlets.
-
-## Getting started
-
-The full guide is at [`docs/index.html`](docs/index.html).
-Quick version:
-
-1. **Generate a Platform API key** in ConnectWise Platform: Integrations → API Access → Generate API Access.
-   Grant all available scopes (the integration uses six read scopes plus one
-   write scope — `automation.create` for RunScript; over-granting
-   on the key is harmless). Copy the secret immediately — it's only shown once.
-2. **Host the barebone MSI**: download the ConnectWise Platform barebone MSI from
-   `https://setup.auplatform.connectwise.com/windows/BareboneAgent/32/ITSagent/MSI/setup`
-   (use a browser or `curl -L`), upload it to your own storage (Azure Blob, S3,
-   web server, etc.), and update the `$URL` in `software/Get-CWPlatformAgentDownloadLink.ps1`
-   with your direct-download URL. See the doc's §8 for details.
-3. **Add the integration in ImmyBot**: Integrations → New Dynamic Integration. Paste
-   `integration/ConnectWiseRMM-Integration.ps1`. Configure with the API endpoint
-   URL, Client ID, and Client Secret. Initialise — it should go Healthy.
-3. **Map tenants to companies**: Integration → Clients tab. Each ImmyBot tenant
-   needs to be mapped to a ConnectWise Platform company for installs to work.
-4. **Create the software entry**: paste each `software/*.ps1` script into its slot
-   per the table above. Under Advanced, set Agent Integration to the integration
-   you created in step 3. Set Uninstall's Detection String to `SaazOnDemand|ITSPlatform`.
-5. **Deploy** to a test machine. Confirm it installs, registers (the test script
-   verifies both), and shows up as an agent in the integration.
-
-## Important operational notes
-
-- **You must host the installer MSI yourself** — ConnectWise Platform serves the
-  generic barebone MSI via a redirect chain that ImmyBot's downloader can't
-  follow. Download the MSI, upload it to your own storage (Azure Blob, S3,
-  etc.), and configure the URL in `Get-CWPlatformAgentDownloadLink.ps1`. **The hosted
-  file needs refreshing periodically** — see the doc's §8 for guidance.
-  Recommend quarterly.
-- **Detection returns a fixed `1.0.0`**, not the real installed agent version.
-  The agent self-updates, so the real version drifts away from any MSI bootstrapper
-  version. The pack treats the agent as a binary installed/healthy check, not
-  a versioned product. See the doc's §10.1 for the reasoning.
-- **OAuth tokens request the full read scope set on every call**, plus
-  `automation.create` for RunScript. See the doc's §7.2 — earlier per-capability scoping
-  caused a class of "token scoped for X, endpoint gated by Y" bugs that all
-  resolved cleanly when we standardised on one broad scope string.
-- **The heartbeat `resourceType` is volatile.** It has changed twice:
-  `endpoints` returns 403 on the AU partner key, `clients` worked and now
-  returns 400, `companies` is current. In beta it is a config value rather than
-  a literal. Never set it back to `endpoints`.
-- **Workstations only.** The install script gates on `Win32_OperatingSystem.ProductType == 1`.
-  Server install needs a different `SYSTEM=` property value that hasn't been
-  validated. To add server support, see the doc's §10.5.
-
-## Maintaining this repo
-
-Before committing changes, make sure the live ImmyBot integration matches the
-files in this repo. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow.
-
-## Troubleshooting
-
-See [`docs/index.html`](docs/index.html) §9.
-The doc captures the specific failure modes we hit during development and what
-they meant — most likely whatever you're hitting is in there.
+The remainder of this repository reflects the older custom implementation that was originally built for the AU region and adapted regionally by API endpoint.
